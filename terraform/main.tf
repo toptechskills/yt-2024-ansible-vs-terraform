@@ -8,7 +8,7 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-west-2"
+  region = var.aws_region
 }
 
 resource "aws_vpc" "main" {
@@ -71,6 +71,13 @@ resource "aws_security_group" "main" {
     protocol    = "tcp"
   }
 
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    cidr_blocks = ["0.0.0.0/0"]
+    protocol    = "tcp"
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -90,12 +97,13 @@ data "aws_ami" "ubuntu" {
 
 resource "aws_instance" "main" {
   ami                         = data.aws_ami.ubuntu.id
-  instance_type               = "t3.micro"
+  instance_type               = var.instance_type
   associate_public_ip_address = true
   key_name                    = var.keypair_name
   subnet_id                   = element([for subnet in aws_subnet.main : subnet.id], 0)
   vpc_security_group_ids      = [aws_security_group.main.id]
 
+  # Recommended in TF docs
   depends_on = [aws_internet_gateway.main]
 
   tags = {

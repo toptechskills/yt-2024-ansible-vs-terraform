@@ -1,7 +1,9 @@
 - name: Create EC2 infrastructure
   hosts: localhost
   vars:
+    name_prefix: ansible
     aws_region: us-west-2
+    vpc_cidr: 10.0.0.0/16
     subnets:
       - az: us-west-2a
         cidr: 10.0.1.0/24
@@ -9,12 +11,13 @@
         cidr: 10.0.2.0/24
       - az: us-west-2c
         cidr: 10.0.3.0/24
-    name_prefix: ansible
+    keypair_name: percy_id_ed25519
+    instance_type: t3.micro
   tasks:
     - name: Create a new VPC
       amazon.aws.ec2_vpc_net:
         name: "{{ name_prefix }}_vpc"
-        cidr_block: 10.0.0.0/16
+        cidr_block: "{{ vpc_cidr }}"
         region: "{{ aws_region }}"
       register: vpc
 
@@ -62,6 +65,10 @@
             ports:
               - 22
             cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            ports:
+              - 80
+            cidr_ip: 0.0.0.0/0
       register: sg
 
     - name: Get AMI ID
@@ -76,9 +83,9 @@
       amazon.aws.ec2_instance:
         region: "{{ aws_region }}"
         name: "{{ name_prefix }}_instance"
-        key_name: percy_id_ed25519
+        key_name: "{{ keypair_name }}"
         vpc_subnet_id: "{{ subnet.results[0].subnet.id }}"
-        instance_type: t3.micro
+        instance_type: "{{ instance_type }}"
         security_group: "{{ sg.group_id }}"
         image_id: "{{ ami.images[-1].image_id }}"
         network:
