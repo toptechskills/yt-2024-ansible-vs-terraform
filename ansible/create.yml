@@ -1,0 +1,111 @@
+- name: Create EC2 infrastructure
+  hosts: localhost
+  vars:
+    aws_region: us-west-2
+    subnets:
+      - az: us-west-2a
+        cidr: 10.0.1.0/24
+      - az: us-west-2b
+        cidr: 10.0.2.0/24
+      - az: us-west-2c
+        cidr: 10.0.3.0/24
+    name_prefix: percy_dev
+  tasks:
+    - name: Create a new VPC
+      amazon.aws.ec2_vpc_net:
+        name: "{{ name_prefix }}_vpc"
+        cidr_block: 10.0.0.0/16
+        ipv6_cidr: true
+        region: "{{ aws_region }}"
+      register: vpc
+
+    - name: Print vpc info
+      ansible.builtin.debug:
+        var: vpc
+
+    - name: Create internet gateway
+      ansible.builtin.ec2_vpc_igw:
+        region: "{{ aws_region }}"
+        vpc_id: "{{ vpc.vpc.id }}"
+        tags:
+          Name: "{{ name_prefix }}_igw"
+      register: igw
+
+    - name: Print igw info
+      ansible.builtin.debug:
+        var: igw
+
+    - name: Create subnets
+      ansible.builtin.ec2_vpc_subnet:
+        region: "{{ aws_region }}"
+        vpc_id: "{{ vpc.vpc.id }}"
+        az: "{{ item.az }}"
+        cidr: "{{ item.cidr }}"
+        tags:
+          Name: "{{ name_prefix }}_{{ item.az }}"
+      register: subnet
+      loop: "{{ subnets }}"
+
+    - name: Print subnet info
+      ansible.builtin.debug:
+        var: subnet
+
+    - name: Create public route table
+      ansible.builtin.ec2_vpc_route_table:
+        region: "{{ aws_region }}"
+        vpc_id: "{{ vpc.vpc.id }}"
+        subnets: "{{ subnet.results | map(attribute='subnet.id') | list }}"
+        routes:
+          - dest: 0.0.0.0/0
+            gateway_id: "{{ igw.gateway_id }}"
+          - dest: ::/0
+            gateway_id: "{{ igw.gateway_id }}"
+        tags:
+          Name: "{{ name_prefix }}_public_route_table"
+      register: public_route_table
+
+    - name: Create a security group
+      amazon.aws.ec2_security_group:
+        name: "{{ name_prefix }}_sg"
+        description: "{{ name_prefix }}_sg"
+        vpc_id: "{{ vpc.vpc.id }}"
+        region: "{{ aws_region }}"
+        rules:
+          - proto: tcp
+            ports:
+              - 22
+            cidr_ip: 0.0.0.0/0
+      register: sg
+
+    - name: Print sg info
+      ansible.builtin.debug:
+        var: sg
+
+    - name: Get AMI ID
+      amazon.aws.ec2_ami_info:
+        region: "{{ aws_region }}"
+        owners: 099720109477
+        filters:
+          name: "ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*"
+      register: ami
+
+    - name: Print AMI info
+      ansible.builtin.debug:
+        var: ami
+
+    - name: Create an instance
+      amazon.aws.ec2_instance:
+        region: "{{ aws_region }}"
+        name: "{{ name_prefix }}_instance"
+        key_name: percy_id_ed25519
+        vpc_subnet_id: "{{ subnet.results[0].subnet.id }}"
+        instance_type: t3.micro
+        security_group: "{{ sg.group_id }}"
+        image_id: "{{ ami.images[-1].image_id }}"
+        network:
+          assign_public_ip: true
+      register: instance
+
+    - name: Print instance info
+      ansible.builtin.debug:
+        var: instance
