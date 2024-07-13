@@ -1,8 +1,8 @@
 # Ansible vs Terraform
 
-## Ansible
-
 Assumes that you already have a keypair associated with the region you want to launch infrastructure in, and profiles set up in `~/.aws/credentials`.
+
+## Ansible
 
 ```
 cd ansible
@@ -12,4 +12,15 @@ pip install -r requirements.txt
 
 export AWS_PROFILE=...
 ansible-playbook create.yml
+```
+
+## Terraform
+
+```
+cd terraform
+
+asdf install
+
+export AWS_PROFILE=...
+terraform apply
 ```
