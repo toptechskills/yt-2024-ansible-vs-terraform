@@ -1,0 +1,19 @@
+- name: Orchestrate VMs
+  hosts: all
+  serial: 1
+  tasks:
+    - name: Reboot host
+      ansible.builtin.reboot:
+        msg: Reboot initiated by Ansible
+      become: true
+
+    - name: Make nginx request
+      ansible.builtin.uri:
+        url: "http://{{ ansible_host }}"
+        return_content: true
+      delegate_to: localhost
+      register: uri_result
+
+    - name: Print response body
+      ansible.builtin.debug:
+        var: uri_result.content

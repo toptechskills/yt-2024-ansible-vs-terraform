@@ -1,3 +1,7 @@
+# Ansible
+
+ansible/inventory/hosts
+
 # Terraform
 
 .terraform

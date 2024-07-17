@@ -1,0 +1,27 @@
+- name: Configure VMs
+  hosts: all
+  become: true
+  handlers:
+    - name: Reload nginx
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded
+  tasks:
+    - name: Install nginx
+      ansible.builtin.apt:
+        name: nginx
+        update_cache: true
+
+    - name: Update default site config
+      ansible.builtin.copy:
+        dest: /etc/nginx/sites-enabled/default
+        content: |
+          server {
+            listen 80;
+
+            location / {
+              add_header content-type "text/html";
+              return 200 "<h1 style='font-size:5em;padding:4em;'>Hello from {{ ansible_host }}!</h1>\n";
+            }
+          }
+      notify: Reload nginx

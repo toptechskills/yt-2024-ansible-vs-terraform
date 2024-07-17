@@ -12,6 +12,8 @@ pip install -r requirements.txt
 
 export AWS_PROFILE=...
 ansible-playbook create.yml
+ansible-playbook configure.yml
+ansible-playbook orchestrate.yml
 ```
 
 ## Terraform
