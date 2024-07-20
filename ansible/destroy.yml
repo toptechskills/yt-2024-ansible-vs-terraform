@@ -4,13 +4,6 @@
     aws_region: us-west-2
     name_prefix: ansible
     vpc_cidr: 10.0.0.0/16
-    subnets:
-      - az: us-west-2a
-        cidr: 10.0.1.0/24
-      - az: us-west-2b
-        cidr: 10.0.2.0/24
-      - az: us-west-2c
-        cidr: 10.0.3.0/24
   tasks:
     - name: Destroy EC2 instance
       amazon.aws.ec2_instance:
@@ -56,18 +49,23 @@
         lookup: id
         state: absent
 
+    - name: Get subnet info
+      ansible.builtin.ec2_vpc_subnet_info:
+        region: "{{ aws_region }}"
+        filters:
+          vpc-id: "{{ vpc_info.vpcs[0].id }}"
+      register: subnet_info
+
     - name: Destroy subnets
       ansible.builtin.ec2_vpc_subnet:
         region: "{{ aws_region }}"
         vpc_id: "{{ vpc_info.vpcs[0].id }}"
-        cidr: "{{ item.cidr }}"
+        cidr: "{{ item.cidr_block }}"
         state: absent
-      loop: "{{ subnets }}"
+      loop: "{{ subnet_info.subnets }}"
 
     - name: Destroy VPC
       amazon.aws.ec2_vpc_net:
         region: "{{ aws_region }}"
         vpc_id: "{{ vpc_info.vpcs[0].id }}"
         state: absent
-
-
