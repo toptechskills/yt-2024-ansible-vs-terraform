@@ -11,6 +11,15 @@ provider "aws" {
   region = var.aws_region
 }
 
+data "aws_ami" "ubuntu" {
+  most_recent = true
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*"]
+  }
+  owners = ["099720109477"] # Canonical
+}
+
 resource "aws_vpc" "main" {
   cidr_block       = "10.0.0.0/16"
   instance_tenancy = "default"
@@ -84,15 +93,6 @@ resource "aws_security_group" "main" {
     cidr_blocks = ["0.0.0.0/0"]
     protocol    = "-1"
   }
-}
-
-data "aws_ami" "ubuntu" {
-  most_recent = true
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*"]
-  }
-  owners = ["099720109477"] # Canonical
 }
 
 resource "aws_instance" "main" {

@@ -14,7 +14,7 @@
     keypair_name: percy_id_ed25519
     instance_type: t3.micro
   tasks:
-    - name: Create a new VPC
+    - name: Create VPC
       amazon.aws.ec2_vpc_net:
         name: "{{ name_prefix }}_vpc"
         cidr_block: "{{ vpc_cidr }}"
@@ -54,7 +54,7 @@
           Name: "{{ name_prefix }}_public_route_table"
       register: public_route_table
 
-    - name: Create a security group
+    - name: Create security group
       amazon.aws.ec2_security_group:
         name: "{{ name_prefix }}_sg"
         description: "{{ name_prefix }}_sg"
@@ -79,7 +79,7 @@
           name: "ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*"
       register: ami
 
-    - name: Create an instance
+    - name: Create instance
       amazon.aws.ec2_instance:
         region: "{{ aws_region }}"
         name: "{{ name_prefix }}_instance"

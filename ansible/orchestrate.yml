@@ -1,4 +1,4 @@
-- name: Orchestrate VMs
+- name: Orchestrate VMs (rolling restart)
   hosts: all
   serial: 1
   tasks:

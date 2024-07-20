@@ -14,6 +14,7 @@ export AWS_PROFILE=...
 ansible-playbook create.yml
 ansible-playbook configure.yml
 ansible-playbook orchestrate.yml
+ansible-playbook destroy.yml
 ```
 
 ## Terraform
@@ -24,5 +25,10 @@ cd terraform
 asdf install
 
 export AWS_PROFILE=...
+terraform init
+terraform plan
 terraform apply
+terraform output
+terraform graph -type=plan | dot -Tpng >graph.png
+terraform destroy
 ```
