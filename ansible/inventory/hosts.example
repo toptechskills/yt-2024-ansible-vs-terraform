@@ -1,2 +1,2 @@
-terraform ansible_host=1.2.3.4 ansible_user=ubuntu
-ansible ansible_host=2.3.4.5 ansible_user=ubuntu
+ansible ansible_host=1.2.3.4 ansible_user=ubuntu
+terraform ansible_host=2.3.4.5 ansible_user=ubuntu

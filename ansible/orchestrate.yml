@@ -7,13 +7,10 @@
         msg: Reboot initiated by Ansible
       become: true
 
-    - name: Make nginx request
-      ansible.builtin.uri:
-        url: "http://{{ ansible_host }}"
-        return_content: true
-      delegate_to: localhost
-      register: uri_result
+    - name: Check uptime of host
+      ansible.builtin.command: uptime
+      register: uptime_result
 
-    - name: Print response body
+    - name: Print uptime
       ansible.builtin.debug:
-        var: uri_result.content
+        var: uptime_result.stdout

@@ -21,7 +21,7 @@
 
             location / {
               add_header content-type "text/html";
-              return 200 "<h1 style='font-size:5em;padding:4em;'>Hello from {{ ansible_host }}!</h1>\n";
+              return 200 "<h1 style='font-size:5em;padding:4em;'>Hello from {{ inventory_hostname }} ({{ ansible_host }})!</h1>\n";
             }
           }
       notify: Reload nginx
